@@ -4,8 +4,9 @@ from DeepLearning import Nets
 
 import random
 
-#random.randint(-1,-32)
+print(random.randint(0, 1))
 
 net = Nets.NeuralNetwork([1, 3], 1)
 
-net.feedForward(3)
+net.feedForward(1)
+net.backPropagate([2, 3, 1])

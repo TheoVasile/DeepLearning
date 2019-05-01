@@ -1,4 +1,4 @@
-import numpy as np
+import random
 import math
 
 def sigmoid(x):
@@ -8,7 +8,7 @@ def sigmoid(x):
 class Node:
     def __init__(self):
         self.value = 0 #value stored in the neuron
-        self.bias = np.random.random() * 6 - 3 #bias value that offsets node value
+        self.bias = random.random() * 6 - 3 #bias value that offsets node value
     def get_value(self):
         return self.value
     def set_value(self, value):
@@ -52,7 +52,7 @@ class NeuralNetwork:
                     #iterate through nodes in previous layer
                     for k in range(0, layerDepth[l-1]):
                         #make a weight connecting the nodes
-                        self.weights[l][(k, j)] = np.random.random() * 6 - 3
+                        self.weights[l][(k, j)] = random.random() * 6 - 3
     def feedForward(self, inputs):
         ### pass input values into input layer
         inputLayer = self.layersList[0]
@@ -90,3 +90,31 @@ class NeuralNetwork:
                 currentNode.activate()
 
                 print(currentNode.get_value())
+    def backPropagate(self, outputs):
+        derivError = {}
+        #iterate backwards through layers
+        for l in range(-len(self.layersList)+1, -1):
+            layer = -l
+            derivError[layer] = {}
+            currentLayer = self.layersList[layer]
+            for j in range(0, currentLayer.length()):
+                currentNode = currentLayer.get_node(j)
+
+                #perform calculation for derivative error on output layer
+                if layer == len(self.layersList):
+                    derivError[layer][j] = currentNode.get_value() - outputs[j]
+                #seperate calculaton performed on hidden layers for derivative error
+                else:
+                    derivError[layer][j] = 0
+                    layerAhead = self.layersList[layer+1]
+                    for k in range(0, layerAhead.length()):
+                        derivError[layer][j] += derivError[layer+1][k] * self.weights[layer+1][[j,k]]
+
+                        #alter weight value based on derivative error
+                        self.weights[layer+1][k] -= self.learningRate * derivError[layer+1][k] * currentNode.get_value()
+
+                #apply derivative of activation function
+                derivError[layer][j] *= currentNode.get_value() * (1 - currentNode.get_value())
+
+                #alter bias value based on derivative error
+                currentNode.set_bias(currentNode.get_bias() - self.learningRate * derivError[layer][j])
