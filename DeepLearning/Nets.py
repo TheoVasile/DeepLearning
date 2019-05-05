@@ -58,7 +58,7 @@ class NeuralNetwork:
         inputLayer = self.layersList[0]
         try:
             #iterate through nodes in input layer
-            for n in inputLayer.length():
+            for n in range(0, inputLayer.length()):
                 node = inputLayer.get_node(n)
                 node.set_value(inputs[n]) #pass input value into node
                 node.set_value(node.get_value() + node.get_bias()) #apply bias value to node
@@ -89,7 +89,7 @@ class NeuralNetwork:
                 #apply activation function to current node value
                 currentNode.activate()
 
-                print(currentNode.get_value())
+                #print(currentNode.get_value())
     def backPropagate(self, outputs):
         derivError = {}
         #iterate backwards through layers
@@ -101,20 +101,27 @@ class NeuralNetwork:
                 currentNode = currentLayer.get_node(j)
 
                 #perform calculation for derivative error on output layer
-                if layer == len(self.layersList):
+                if layer == len(self.layersList)-1:
                     derivError[layer][j] = currentNode.get_value() - outputs[j]
                 #seperate calculaton performed on hidden layers for derivative error
                 else:
                     derivError[layer][j] = 0
                     layerAhead = self.layersList[layer+1]
                     for k in range(0, layerAhead.length()):
-                        derivError[layer][j] += derivError[layer+1][k] * self.weights[layer+1][[j,k]]
+                        derivError[layer][j] += derivError[layer+1][k] * self.weights[layer+1][(j,k)]
 
                         #alter weight value based on derivative error
-                        self.weights[layer+1][k] -= self.learningRate * derivError[layer+1][k] * currentNode.get_value()
+                        self.weights[layer+1][(j,k)] -= self.learningRate * derivError[layer+1][k] * currentNode.get_value()
 
                 #apply derivative of activation function
                 derivError[layer][j] *= currentNode.get_value() * (1 - currentNode.get_value())
 
                 #alter bias value based on derivative error
                 currentNode.set_bias(currentNode.get_bias() - self.learningRate * derivError[layer][j])
+    def get_layer(self, layer):
+        vals = []
+        currentLayer = self.layersList[layer]
+        for n in range(0, currentLayer.length()):
+            currentNode = currentLayer.get_node(n)
+            vals.append(currentNode.get_value())
+        return vals
